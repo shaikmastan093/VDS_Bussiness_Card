@@ -1,0 +1,143 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+        "mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+      }
+    }
+    </script>
+    <script type="module">
+      import * as THREE from 'three';
+      import { MindARThree } from 'mindar-image-three';
+
+      const mindarThree = new MindARThree({
+        container: document.querySelector("#container"),
+        // imageTargetSrc: "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind"
+        imageTargetSrc: "./assets/vds.mind"
+      });
+      const {renderer, scene, camera} = mindarThree;
+      const anchor = mindarThree.addAnchor(0);
+
+      // Profile Image
+      const profileTexture = new THREE.TextureLoader().load('./assets/AghaKhan.jpg');
+      const profileMaterial = new THREE.MeshBasicMaterial({map: profileTexture});
+      const profileGeometry = new THREE.PlaneGeometry(1, 1);
+      const profileMesh = new THREE.Mesh(profileGeometry, profileMaterial);
+      profileMesh.position.set(0.8, 0.8, 0);  // Position at the top right corner
+      anchor.group.add(profileMesh);
+
+      // Stylish text rendering function
+      const createTextMesh = (text, fontSize, position, color = '#FFFFFF') => {
+        const textCanvas = document.createElement('canvas');
+        const textContext = textCanvas.getContext('2d');
+        textCanvas.width = 450;
+        textCanvas.height = 50;
+
+        textContext.fillStyle = color;
+        textContext.font = `bold ${fontSize}px 'Arial'`; // Use a professional font
+        textContext.textAlign = 'left';
+        textContext.textBaseline = 'middle';
+
+        textContext.fillText(text, 20, textCanvas.height / 2);
+
+        const textTexture = new THREE.CanvasTexture(textCanvas);
+        const textMaterial = new THREE.MeshBasicMaterial({map: textTexture, transparent: true});
+        const textGeometry = new THREE.PlaneGeometry(1.5, 0.15);
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.set(position.x, position.y, position.z);
+
+        return textMesh;
+      };
+
+      // Function to add an icon
+      const addIconWithText = (url, position, size = {x: 0.1, y: 0.1}) => {
+        const texture = new THREE.TextureLoader().load(url);
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        const geometry = new THREE.PlaneGeometry(size.x, size.y);
+        const iconMesh = new THREE.Mesh(geometry, material);
+        iconMesh.position.set(position.x, position.y, position.z);
+        anchor.group.add(iconMesh);
+      };
+
+      // Add Name and Job Title
+      const nameTextMesh = createTextMesh("Agha Khan", 30, {x: -0.5, y: 0.5, z: 0});
+      const titleTextMesh = createTextMesh("Founder of Village Developer Studios", 24, {x: -0.5, y: 0.35, z: 0});
+      anchor.group.add(nameTextMesh);
+      anchor.group.add(titleTextMesh);
+
+      // Add Email Icon and Text
+      addIconWithText('./assets/email.png', {x: -1.25, y: 0.2, z: 0}, {x: 0.1, y: 0.1});
+      const emailTextMesh = createTextMesh("Email: aghakhan1998@gmail.com", 20, {x: -0.5, y: 0.2, z: 0});
+      anchor.group.add(emailTextMesh);
+
+      // Add Phone Icon and Text
+      addIconWithText('./assets/phone.png', {x: -1.25, y: 0.1, z: 0}, {x: 0.1, y: 0.1});
+      const phoneTextMesh = createTextMesh("Phone: +91 950079783", 20, {x: -0.5, y: 0.1, z: 0});
+      anchor.group.add(phoneTextMesh);
+
+      // Add Website Icon and Text
+      addIconWithText('./assets/planet.png', {x: -1.25, y: 0.0, z: 0}, {x: 0.1, y: 0.1});
+      const websiteTextMesh = createTextMesh("Website: www.villagedeveloperstudios.com", 20, {x: -0.5, y: 0.0, z: 0});
+      anchor.group.add(websiteTextMesh);
+
+      // Centered Video Element
+      const video = document.createElement('video');
+      video.src = './assets/video.mp4';
+      video.loop = true;
+      video.muted = true;
+      video.play();
+
+      const videoTexture = new THREE.VideoTexture(video);
+      const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+      const videoGeometry = new THREE.PlaneGeometry(1, 0.55);
+      const videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+      videoMesh.position.set(0, -0.5, 0); // Center of the screen
+      anchor.group.add(videoMesh);
+
+      // Adding social media icons directly below the video
+      const addIcon = (url, position) => {
+        const texture = new THREE.TextureLoader().load(url);
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        const iconMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), material);
+        iconMesh.position.set(position.x, position.y, position.z);
+        anchor.group.add(iconMesh);
+      };
+
+      // Centered Social Media Icons
+      const iconOffset = 0.3; // Distance from the video
+      addIcon('./assets/facebook.png', {x: -0.4, y: -1 - iconOffset, z: 0}); // Facebook
+      addIcon('./assets/linkedin.png', {x: 0, y: -1 - iconOffset, z: 0}); // LinkedIn
+      addIcon('./assets/instagram.png', {x: 0.4, y: -1 - iconOffset, z: 0}); // Instagram
+
+      // Start the AR experience
+      const start = async () => {
+        await mindarThree.start();
+        renderer.setAnimationLoop(() => {
+          renderer.render(scene, camera);
+        });
+      };
+
+      start();
+    </script>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #000; /* Dark background for better contrast */
+      }
+      #container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+</body>
+</html>
